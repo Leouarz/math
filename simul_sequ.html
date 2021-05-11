@@ -1,0 +1,260 @@
+<html>
+<head>
+	<title>Math</title>
+
+	<!-- Inclure le CSS -->
+	<link href="vendor/css/bootstrap.min.css" rel="stylesheet"  type="text/css">
+	<link href="vendor/css/highcharts.css" rel="stylesheet"  type="text/css">
+
+	<!-- Inclure le JS -->
+	<script src="vendor/js/jquery.js" type="text/javascript"></script>
+	<script src="vendor/js/highchart/highcharts.src.js" type="text/javascript"></script>
+	<script src="vendor/js/bootstrap/bootstrap.min.js" type="text/javascript"></script>
+	<script src="vendor/js/utils.js" type="text/javascript"></script>
+	<script src="vendor/js/proc_poisson.js" type="text/javascript"></script>
+	<script src="simulation_sequ.js" type="text/javascript"></script>
+
+</head>
+<body>
+	<div class="container-fluid">
+		<h1 style="text-align: center;">Simulation zone de chargement Taxi Aéroport</h1>
+		<a href="index.html" class="btn btn-primary btn-lg" role="button" aria-pressed="true">Générateur de nombre</a>
+		<a href="poisson.html" class="btn btn-primary btn-lg" role="button" aria-pressed="true">Processus de Poisson</a>
+		<a href="simul_sequ.html" class="btn btn-primary btn-lg" role="button" aria-pressed="true">Simulation fil d'attente taxi / aéroport</a>
+		<hr>
+		<br/>
+		<div class="row">
+			<!-- Paramétrage -->
+			<div class="col-sm-4">
+				<div class="card">
+					<div class="card-header">
+						Simulation : gestion dimensionnement aire d'attente 
+					</div>
+					<div class="card-body">
+						<div class="form-group row">
+							<label for="nb_periode" class="col-sm-12 col-form-label">Nombre de périodes de temps</label>
+							<div class="col-sm-12">
+								<input type="number" class="form-control" value="2000" id="nb_periode" placeholder="Entrez un nombre">
+							</div>
+						</div>
+						<div class="form-group row">
+							<label for="duree" class="col-sm-12 col-form-label">Durée de la période (T)</label>
+							<div class="col-sm-12">
+								<input type="number" class="form-control" value="1" id="duree" placeholder="Entrez un nombre">
+							</div>
+						</div>
+						<div class="form-group row">
+							<label for="lambda" class="col-sm-12 col-form-label">Environnement</label>
+							<div class="col-sm-12">
+								<select id="env" class="form-control">
+                        		    <option value="0">Markovien</option>
+                        		    <option value="1">Non Markovien</option>
+                        		</select>
+							</div>
+						</div>
+						<div class="form-group row">
+							<label for="lambda" class="col-sm-12 col-form-label">Cadence d'arrivée des taxis (NB Taxi / T)</label>
+							<div class="col-sm-12">
+								<input type="number" class="form-control" value="2.7" id="lambda" placeholder="Entrez un nombre">
+							</div>
+						</div>
+						<div class="form-group row">
+							<label for="mu" class="col-sm-12 col-form-label">Cadence moyenne MU de durée de service (NB Chargement / T)</label>
+							<div class="col-sm-12">
+								<input type="number" class="form-control" value="3" id="mu" placeholder="Entrez un nombre">
+							</div>
+						</div>
+						<div class="form-group row">
+							<label for="nbPlaceFile" class="col-sm-12 col-form-label">Nombre de place dans la file</label>
+							<div class="col-sm-12">
+								<input type="number" class="form-control" value="44" id="nbPlaceFile" placeholder="Entrez un nombre">
+							</div>
+						</div>
+						<div class="form-group row">
+							<label for="pas" class="col-sm-12 col-form-label">Pas (entre les t du graphique, par défaut : <strong>60</strong>)</label>
+							<div class="col-sm-12">
+								<input type="number" class="form-control" value="60" id="pas" placeholder="Entrez un nombre">
+							</div>
+						</div>
+						<hr>
+						<button class="btn btn-primary col-sm-12" type="submit" id="submit">Lancer la simulation</button>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-8">
+    			<div class="row">
+					<!-- Listing des nombres -->
+					<div class="col-sm-6">
+						<div class="card">
+							<div class="card-header">
+								Résultats de la stimulation
+							</div>
+							<div class="card-body" id="result">
+								
+							</div>
+						</div>
+					</div> 
+					<!-- Theorique -->
+					<div class="col-sm-6">
+						<div class="card">
+							<div class="card-header">
+								Résultats théoriques
+							</div>
+							<div class="card-body" id="theo">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+	    </div>
+	    <div id="container" style="min-width: 310px; max-height: 400px; margin: 0 auto"></div>
+		<br/>
+		<div class="row">
+			<div class="col-sm-6">
+				<div class="card">
+					<div class="card-header">
+						Instructions
+					</div>
+					<div class="card-body" id="instructions">
+						<a target="_blank" rel="noreferrer" href="rapport-taxi.pdf">Open instructions PDF file</a>
+					</div>
+				</div>
+			</div> 
+			<div class="col-sm-6">
+				<div class="card">
+					<div class="card-header">
+						Illustation
+					</div>
+					<div class="card-body" id="instructions" style="margin-left: auto; margin-right: auto;">
+						<img src="illustation.jpg" alt="airport-taxi-illustation" style="max-width:100%; margin: 0;">
+					</div>
+				</div>
+			</div> 
+		</div>
+	</div>
+
+	<script type="text/javascript">
+		function precisionRound(number, precision) {
+		var factor = Math.pow(10, precision);
+		return Math.round(number * factor) / factor;
+		}
+		
+		var lambda;
+		var nb_periode;
+		var duree;
+		var mu;
+		var nbPlaceFile;
+		var env;
+		var tabx = new Array();
+		var taby1 = new Array();
+		var taby2 = new Array();
+		var taby3 = new Array();
+		
+		var nbtest = 0;
+		var nbtot = 0;
+
+		// Si on clique pour générer les nombres
+		$("#submit").click(function() {
+			nbtest+=1;
+			lambda 		= $("#lambda").val();
+			nb_periode 	= $("#nb_periode").val();
+			duree 	= $("#duree").val();
+			mu = $("#mu").val();
+			nbPlaceFile = $("#nbPlaceFile").val();
+			env = $("#env").val();
+			pas = $("#pas").val();
+			if (env == 1) {
+				var simul_poisson = processus_taxi_noMarkov(nb_periode, duree, lambda, mu, nbPlaceFile);
+			} else {
+				var simul_poisson = processus_taxi(nb_periode, duree, lambda, mu, nbPlaceFile);
+			}
+			
+			
+			var tps_tot_file = 0;
+			var tps_tot_chargement = 0;
+			var tps_tot_nbTaxiFile = 0;
+			$.each(simul_poisson.tab, function(id, val){
+				
+				// val de la forme : [entree, sortie, tps_chargement]
+				tps_tot_file += val[1] - val[2] - val[0];
+				tps_tot_chargement += val[2];
+				tps_tot_nbTaxiFile += val[3];
+			});
+			
+			
+			var html_res = ""
+			var html_theo = ""
+			html_res += "<p>Nombre moyen de taxis dans le système : <code>" + simul_poisson.moy_taille_syst +"</code></p>";
+			html_res += "<p>Moyenne temps dans le système : <code>" + (tps_tot_file + tps_tot_chargement)/simul_poisson.tab.length + "</code></p>";
+			html_res += "<p>Moyenne de taxis dans la file : <code>" + simul_poisson.moy_taille_file + "</code></p>";
+			html_res += "<p>Moyenne temps dans la file : <code>" + tps_tot_file/simul_poisson.tab.length + "</code></p>";
+			html_res += "<p>Moyenne de temps de chargement : <code>" + tps_tot_chargement/simul_poisson.tab.length + "</code></p>";
+			html_res += "<p>Nombre de Clients servis : <code>" + simul_poisson.tab.length + "</code></p>";
+			html_res += "<p>Nombre de taxis perdu : <code>" + simul_poisson.taxi_perdu + "</code></p>";
+
+			html_theo += "<p>E(Nb Taxi Système)  : <code>" + ENBS(lambda,mu) +"</code></p>";
+			html_theo += "<p>E(T Attente Système)  : <code>" + ETAS(lambda,mu) +"</code></p>";
+			html_theo += "<p>E(Nb Taxi File)  : <code>" + ENBF(lambda,mu) +"</code></p>";
+			html_theo += "<p>E(T Attente File)  : <code>" + ETAF(lambda,mu) +"</code></p>";
+			html_theo += "<p>E(T Chargement)  : <code> mu = " + 1/mu +"</code></p>";
+
+			//test
+			nbtot += tps_tot_file/simul_poisson.tab.length;
+			console.log(nbtot/nbtest);
+			//
+
+			$("#result").html(html_res);
+			$("#theo").html(html_theo);
+			console.log(simul_poisson);
+			
+			//HighChart
+			getChart(simul_poisson, tabx, taby1, taby2, taby3, nb_periode, duree, pas);
+			Highcharts.chart('container', {
+				chart: {
+					type: 'column',
+					zoomType : 'x'
+				},
+				title: {
+					text: 'Timeline des événements d\'entrés, de sortie de file et sortie du système'
+				},
+				xAxis: {
+					title: 't',
+					categories: tabx,
+					crosshair: true
+				},
+				yAxis: {
+					min: 0,
+					title: {
+						text: 'Occurence d\'événement'
+					}
+				},
+				tooltip: {
+					enabled: false
+				},
+				plotOptions: {
+					column: {
+						pointPadding: 0.2,
+						borderWidth: 0
+					}
+				},
+				series: [{
+					name: 'Temps d\'arrivéee',
+					data: taby1
+			
+				}, {
+					name: 'Temps de sortie de la file',
+					data: taby2
+			
+				}, {
+					name: 'Temps de sortie du système',
+					data: taby3
+			
+				}]
+			});
+			
+		});			
+	</script>
+	<script src="vendor/js/jquery.js" type="text/javascript"></script>
+	<script src="vendor/js/bootstrap/bootstrap.min.js" type="text/javascript"></script>
+</body>
+</html>

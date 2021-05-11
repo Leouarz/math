@@ -1,0 +1,363 @@
+<html>
+<head>
+	<title>Math</title>
+
+	<!-- Inclure le CSS -->
+	<link href="vendor/css/bootstrap.min.css" rel="stylesheet"  type="text/css">
+	<link href="vendor/css/highcharts.css" rel="stylesheet"  type="text/css">
+
+	<!-- Inclure le JS -->
+	<script src="vendor/js/jquery.js" type="text/javascript"></script>
+	<script src="vendor/js/highchart/highcharts.src.js" type="text/javascript"></script>
+	<script src="vendor/js/bootstrap/bootstrap.min.js" type="text/javascript"></script>
+	<script src="vendor/js/utils.js" type="text/javascript"></script>
+	<script src="vendor/js/proc_poisson.js" type="text/javascript"></script>
+
+</head>
+<body>
+	<div class="container-fluid">
+		<h1 style="text-align: center;">Partie 1 : Générateur de nombres</h1>
+		<a href="index.html" class="btn btn-primary btn-lg" role="button" aria-pressed="true">Générateur de nombre</a>
+		<a href="poisson.html" class="btn btn-primary btn-lg" role="button" aria-pressed="true">Processus de Poisson</a>
+		<a href="simul_sequ.html" class="btn btn-primary btn-lg" role="button" aria-pressed="true">Simulation fil d'attente taxi / aéroport</a>
+		<hr>
+		<br/>
+		<div class="row">
+			<!-- Generateur de chiffre -->
+			<div class="col-sm-4">
+				<div class="card">
+					<div class="card-header">
+						Génération de nombres
+					</div>
+					<div class="card-body">
+						<div class="form-group row">
+							<label for="nb_number" class="col-sm-12 col-form-label">Nombre de chiffre à générer</label>
+							<div class="col-sm-12">
+								<input type="number" class="form-control" id="nb_number" placeholder="Entrez un nombre">
+							</div>
+						</div>
+						<div class="form-group row">
+							<label for="nb_number" class="col-sm-12 col-form-label">Type de loi</label>
+							<div class="col-sm-12">
+								<select class="form-control" id="loi">
+									<option value="uni" selected="selected">Loi uniforme</option>
+									<option value="exp">Loi exponentielle</option>
+									<option value="norm">Loi Normale</option>
+									<option value="poi">Loi de Poisson</option>
+									<!--<option value="wei">Loi de Weibull</option>-->
+								</select>
+							</div>
+						</div>
+						<hr>
+						<div class="form-group row" style="display: none;" id="lambda_div">
+							<label for="lambda" class="col-sm-12 col-form-label">Lambda</label>
+							<div class="col-sm-12">
+								<input type="number" class="form-control" id="lambda" placeholder="Entrez un nombre">
+							</div>
+						</div>
+						<div class="form-group row" style="display: none;" id="esperance_div">
+							<label for="esperance" class="col-sm-12 col-form-label">Espérance</label>
+							<div class="col-sm-12">
+								<input type="number" class="form-control" id="esperance" placeholder="Entrez un nombre">
+							</div>
+						</div>
+						<div class="form-group row" style="display: none;" id="ecart_type_div">
+							<label for="ecart_type" class="col-sm-12 col-form-label">Écart type</label>
+							<div class="col-sm-12">
+								<input type="number" class="form-control" id="ecart_type" placeholder="Entrez un nombre">
+							</div>
+						</div>
+						<div class="form-group row" style="display: none;" id="forme_div">
+							<label for="forme" class="col-sm-12 col-form-label">Forme de la distribution</label>
+							<div class="col-sm-12">
+								<input type="number" class="form-control" id="forme" placeholder="Entrez un nombre">
+							</div>
+						</div>
+						<div class="form-group row" id="nb_min_div">
+							<label for="nb_min" class="col-sm-12 col-form-label">Nombre minimum</label>
+							<div class="col-sm-12">
+								<input type="number" class="form-control" id="nb_min" placeholder="Entrez un nombre">
+							</div>
+						</div>
+						<div class="form-group row" id="nb_max_div">
+							<label for="nb_max" class="col-sm-12 col-form-label">Nombre maximum</label>
+							<div class="col-sm-12">
+								<input type="number" class="form-control" id="nb_max" placeholder="Entrez un nombre">
+							</div>
+						</div>
+						<button class="btn btn-primary col-sm-12" type="submit" id="submit">Générer</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Listing des nombres -->
+			<div class="col-sm-8">
+				<div class="card">
+					<div class="card-header">
+						Liste des nombres
+					</div>
+					<div class="card-body">
+					    <p>Liste des nombres générés :
+                            <code id="liste_nombre">
+    							Liste vide
+    						</code>
+                        </p>
+                    
+    					<!-- Highchart container -->
+    					<div id="container" style="min-width: 310px; height: 380px; margin: 0 auto"></div>
+					</div>
+				</div>
+			</div> 
+	    </div>
+		<div class="row" style="margin-top: 10px;">
+		    <div class="col-sm-12">
+    			<div class="card">
+    				<div class="card-header">
+    					Test Khi2
+    				</div>
+    				<div class="card-body">
+    					<p>D² : <code id="d"></code></p>
+    					<p id="testKhi2">
+    						Test non effectué
+    					</p>
+    				</div>
+    			</div>
+			</div>
+		</div>
+	</div>
+	
+	<div id="liste_nb_modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Liste de nombres générés</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="pre_liste">
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<script type="text/javascript">
+    
+    function showModListe(){
+        $("#liste_nb_modal").modal('show');
+    }
+    
+    function precisionRound(number, precision) {
+      var factor = Math.pow(10, precision);
+      return Math.round(number * factor) / factor;
+    }
+    
+    var nb_min;
+    var nb_max;
+    var lambda;
+    var ecart_type;
+    var esperance;
+    var nb_number;
+    var loi;
+    var forme;
+    
+$( document ).ready(function() {
+
+	// Si la loi change
+	$("#loi").change(function() {
+		var loi 		= $("#loi").val();
+
+		switch (loi) {
+			case "uni" : // loi uniforme
+				$("#lambda_div").hide();
+				$("#nb_min_div").show();
+				$("#nb_max_div").show();
+				$("#esperance_div").hide();
+				$("#ecart_type_div").hide();
+			break;
+			case "exp" : // loi exponentielle
+				$("#nb_min_div").hide();
+				$("#nb_max_div").hide();
+				$("#lambda_div").show();
+				$("#esperance_div").hide();
+				$("#ecart_type_div").hide();
+				$("#forme_div").hide();
+			break;
+			case "norm" : // loi normale
+				$("#nb_min_div").hide();
+				$("#nb_max_div").hide();
+				$("#lambda_div").hide();
+				$("#esperance_div").show();
+				$("#ecart_type_div").show();
+				$("#forme_div").hide();
+			break;
+			case "poi" : // loi poisson
+				$("#nb_min_div").hide();
+				$("#nb_max_div").hide();
+				$("#lambda_div").show();
+				$("#esperance_div").hide();
+				$("#ecart_type_div").hide();
+				$("#forme_div").hide();
+			break;
+			case "wei" : // loi poisson
+				$("#nb_min_div").hide();
+				$("#nb_max_div").hide();
+				$("#lambda_div").show();
+				$("#forme_div").show();
+				$("#esperance_div").hide();
+				$("#ecart_type_div").hide();
+			break;
+		}
+	});
+	
+	// Si on clique pour générer les nombres
+	$("#submit").click(function() {
+
+		nb_min 		= $("#nb_min").val();
+		nb_max 		= $("#nb_max").val();
+		lambda 		= $("#lambda").val();
+		ecart_type 	= $("#ecart_type").val();
+		esperance	= $("#esperance").val();
+		nb_number 	= $("#nb_number").val();
+		loi 		= $("#loi").val();
+		forme 		= $("#forme").val();
+
+		var nombres_generes = new Array();
+		var Khi2 = new Array();
+		switch (loi) {
+			case "uni" : // loi uniforme
+				nombres_generes = generer_nombre_uni(nb_number,nb_min, nb_max);
+			break;
+			case "exp" : // loi exponentielle
+				nombres_generes = generer_nombre_exp(nb_number, lambda);
+			break;
+			case "norm" : // loi normale
+				nombres_generes = generer_nombre_norm(nb_number, esperance, ecart_type);
+			break;
+			case "poi" : // loi poisson
+				nombres_generes = generer_nombre_poi(nb_number, lambda);
+			break;
+			case "wei" : // loi Weibull
+				nombres_generes = generer_nombre_wei(nb_number, lambda, forme);
+			break;
+		}
+		
+		Khi2 = khi2(loi, nombres_generes);
+		var liste_nombre_arrondi = new Array();
+		
+		//arrondi des valeurs
+		$.each(nombres_generes, function(id, val){
+		    liste_nombre_arrondi[id] = precisionRound(val, 3);
+		})
+		
+		// Affichage des nombres générés
+		var liste_nombre_html = "";
+		liste_nombre_html = "{ " + (liste_nombre_arrondi.slice(0, 10)).join(", ") + ", <a href='#' onclick='showModListe()'>[...]</a> }";
+		$("#liste_nombre").html(liste_nombre_html);
+		$("#pre_liste").html("{ " + liste_nombre_arrondi.join(", ") + " }");
+		
+		// Highchart 
+		var tab_xaxis = new Array();
+		$(Khi2).each(function(id, val){
+		    tab_xaxis.push("[" + precisionRound(val.borne_min, 3) + "; " + precisionRound(val.borne_max, 3) + "]");
+		});
+		
+		var tab_yaxis = new Array();
+		$(Khi2).each(function(id, val){
+		    tab_yaxis.push(val.nb_nombre);
+		});
+		
+		var tab_yaxis_attendu = new Array();
+		$(Khi2).each(function(id, val){
+		    tab_yaxis_attendu.push(val.proba);
+		});
+		
+        Highcharts.chart('container', {
+            chart: {
+                type: 'column'
+            },
+            credits: {
+                enabled: false
+            },
+            title: {
+                text: 'Répartition des valeurs générées'
+            },
+            subtitle: {
+                text: 'Pour ' + nb_number + ' nombres suivant une loi "' + loi + '"'
+            },
+            xAxis: {
+                categories: tab_xaxis,
+                crosshair: true
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: 'Proportion (%)'
+                }
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0.2,
+                    borderWidth: 0
+                }
+            },
+            series: [{
+                name: 'Observé',
+                data: tab_yaxis
+        
+            },{
+                name: 'Attendu',
+                data: tab_yaxis_attendu
+        
+            }]
+});
+		
+		
+		// Khi2
+		
+		var html_khi2 = '<table class="table">';
+        html_khi2 += '<thead>';
+        html_khi2 += '<tr><th>Classes</th>';
+        
+		$(Khi2).each(function(id, val){
+		    html_khi2 += '<th>'+ precisionRound(val.borne_min, 3) + " - " + precisionRound(val.borne_max, 3) + "</th>";
+		});
+		
+        html_khi2 += '</tr></thead><tr><th>Proportion</th>';
+		
+		$(Khi2).each(function(id, val){
+		    html_khi2 += '<td>'+ precisionRound(val.nb_nombre, 3) + "</td>";
+		});
+		
+        html_khi2 += '</tr><tr><th>Probabilité</th>';
+		
+		$(Khi2).each(function(id, val){
+		    html_khi2 += '<td>'+ precisionRound(val.proba, 3) + "</td>";
+		});
+		
+		
+        html_khi2 += '</tr><tr><th>Eff Observé</th>';
+		
+		$(Khi2).each(function(id, val){
+		    html_khi2 += '<td>'+ precisionRound(val.effObs, 3) + "</td>";
+		});
+		
+		html_khi2 += '</tr><tr><th>Eff Théorique</th>';
+		
+		$(Khi2).each(function(id, val){
+		    html_khi2 += '<td>'+ precisionRound(val.effTheo, 3) + "</td>";
+		});
+		
+        html_khi2 += '</tr>';
+        
+		$("#testKhi2").html(html_khi2);
+	});
+});
+</script>
+<script src="vendor/js/jquery.js" type="text/javascript"></script>
+<script src="vendor/js/bootstrap/bootstrap.min.js" type="text/javascript"></script>
+</body>
+</html>

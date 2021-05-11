@@ -1,0 +1,31 @@
+{
+  "htmlFiles": [
+    {
+      "fileId": "1_wuKc1wLYtOgsTV5EnHz1CaTOhlYUetN",
+      "contentType": "text/html",
+      "name": "simul_sequ.html",
+      "path": "18nW9SO3z9PJPnMoB5DiAMxTV8j09W_GW"
+    }
+  ],
+  "cssFiles": [],
+  "javascriptFiles": [
+    {
+      "fileId": "13L0aaMeNnulIt5ePlk2uDOak9nVV6GEA",
+      "contentType": "text/javascript",
+      "name": "simulation_sequ.js",
+      "path": "18nW9SO3z9PJPnMoB5DiAMxTV8j09W_GW/"
+    },
+    {
+      "fileId": "1DHzMuwgN_poDia_tOcw6loRWXeOH_95m",
+      "contentType": "text/javascript",
+      "name": "simulateur.js",
+      "path": "18nW9SO3z9PJPnMoB5DiAMxTV8j09W_GW/vendor/js"
+    },
+    {
+      "fileId": "11XZ3VsbytzyikU7-omYmu7uErpIR1s8c",
+      "contentType": "text/javascript",
+      "name": "proc_poisson.js",
+      "path": "18nW9SO3z9PJPnMoB5DiAMxTV8j09W_GW/vendor/js"
+    }
+  ]
+}
